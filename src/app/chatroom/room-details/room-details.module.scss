@@ -1,0 +1,32 @@
+@import 'src/app/chatroom/variables';
+@import 'src/scss/colors';
+
+$padding: 10px;
+
+.container {
+  position: relative;
+  height: $header-height;
+  text-align: center;
+  display: flex;
+  padding: 15px 0;
+  flex-direction: column;
+  justify-content: space-evenly;
+  box-shadow: 0 -1px 7px #666;
+
+  h2 {
+    color: $light-text;
+  }
+
+  p {
+    width: calc(100% - #{$padding});
+    font-size: 20px;
+    margin-left: $padding;
+    color: $lighter-text;
+    overflow: auto;
+    white-space: nowrap;
+  }
+}
+
+.currentUser {
+  color: $red;
+}

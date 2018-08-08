@@ -1,0 +1,16 @@
+@import 'src/scss/colors';
+@import 'src/scss/variables';
+
+.input {
+  height: 35px;
+  border-radius: $border-radius;
+  border: 1px solid $light-border;
+  outline: none;
+  padding: 0 15px;
+  transition: all $transition-time ease-in-out;
+
+  &:focus, &:active {
+    box-shadow: 0 0 5px lighten($red, 10%);
+    border: 1px solid lighten($red, 10%);
+  }
+}

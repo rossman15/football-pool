@@ -1,0 +1,41 @@
+@import 'src/scss/colors';
+@import 'src/scss/variables';
+
+$button-blur: 7px;
+
+.button {
+  cursor: pointer;
+  height: 35px;
+  border: 0;
+  border-radius: $border-radius;
+  outline: 0;
+  transition: all $transition-time ease-in-out;
+}
+
+.primary {
+  background: linear-gradient(to bottom, darken($red, 5%), $red, darken($red, 5%));
+  color: white;
+
+  &:hover {
+    background: linear-gradient(to bottom, darken($red, 10%), darken($red, 5%), darken($red, 10%));
+  }
+
+  &:focus, &:active {
+    box-shadow: 0 0 $button-blur darken($red, 20%);
+  }
+}
+
+.secondary {
+  background: 0;
+  color: $blue;
+  font-weight: normal;
+  font-size: 16px;
+
+  &:hover {
+    color: darken($blue, 20%);
+  }
+
+  &:focus, &:active {
+    box-shadow: 0 0 $button-blur darken($blue, 20%);
+  }
+}
