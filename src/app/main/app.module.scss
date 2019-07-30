@@ -1,0 +1,22 @@
+.app {
+  height: 100%;
+  width: 100%;
+
+  :global(.ant-layout-content) {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  :global(.ant-layout-footer) {
+    padding: 18px 50px;
+    background: #444;
+  }
+
+  :global(.ant-layout) {
+    height: 100%;
+    width: 100%;
+  }
+
+}

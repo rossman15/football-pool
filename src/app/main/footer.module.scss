@@ -1,0 +1,12 @@
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+
+  button {
+    font-size: 20px;
+    height: 40px;
+    margin: 5px 0;
+  }
+}

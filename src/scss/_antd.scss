@@ -1,0 +1,33 @@
+$input-height: 36px;
+$font-size: 16px;
+
+.ant-select {
+  min-width: 200px;
+  font-size: $font-size;
+}
+
+.ant-select-selection--single {
+  height: $input-height;
+}
+
+.ant-select-dropdown {
+  font-size: $font-size;
+}
+
+.ant-select-dropdown-menu-item {
+  line-height: $input-height - 10px;
+}
+
+.ant-select-selection__rendered {
+  line-height: $input-height - 2px;
+}
+
+.ant-input {
+  height: $input-height;
+  font-size: $font-size;
+}
+
+.ant-btn {
+  font-size: $font-size;
+  height: $input-height;
+}
