@@ -12,7 +12,8 @@ CREATE TABLE footballpool.Picks (
   week INTEGER NOT NULL,
   teamId CHAR(3) NOT NULL,
 
-  PRIMARY KEY (userId, teamId),
+  PRIMARY KEY (userId, week),
+  UNIQUE KEY (userId, teamId),
   FOREIGN KEY (userId)
       REFERENCES footballpool.Users(id)
 );
