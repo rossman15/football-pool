@@ -33,10 +33,10 @@ class Footer extends Component {
     user: PropTypes.object
   }
 
-  dowloadPastPicks = async () => {
+  dowloadVisiblePicks = async () => {
     const { week, authorization } = this.props
     const filename = `Week ${week - 1}`
-    const res = await fetch(`/api/pastPicksCSV`, {
+    const res = await fetch(`/api/visiblePicksCSV`, {
       method: 'GET',
       headers: { Accept: 'application/json', Authorization: authorization }
     })
@@ -60,7 +60,7 @@ class Footer extends Component {
     return (
       <AntdFooter>
         <div className={styles.footer}>
-          <Button disabled={week < 2} onClick={this.dowloadPastPicks}>
+          <Button disabled={week < 2} onClick={this.dowloadVisiblePicks}>
             Download Pool Spreadsheet
           </Button>
           {user.isAdmin && (

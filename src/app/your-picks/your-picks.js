@@ -7,6 +7,7 @@ import styles from './your-picks.module.scss'
 
 class YourPicks extends Component {
   static propTypes = {
+    userId: PropTypes.number.isRequired,
     authorization: PropTypes.string.isRequired
   }
 
@@ -21,8 +22,8 @@ class YourPicks extends Component {
   }
 
   getPicks = async () => {
-    const { authorization } = this.props
-    const res = await fetch('/api/pastPicks', {
+    const { authorization, userId } = this.props
+    const res = await fetch('/api/visiblePicks', {
       method: 'GET',
       headers: { Accept: 'application/json', Authorization: authorization }
     })
@@ -30,12 +31,11 @@ class YourPicks extends Component {
     if (res.status !== 200) this.setState({ loading: false })
     this.setState({
       loading: false,
-      picks
+      picks: picks[userId]
     })
   }
 
   render() {
-    const { userId, week, user } = this.props
     const { picks } = this.state
     const columns = picks.map(pick => ({
       title: `Week ${pick.week}`,

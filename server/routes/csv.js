@@ -4,7 +4,7 @@ const {
   checkAuthentication,
   checkAdminAuthentication,
   getAllPicksCSV,
-  getPastPicksCSV
+  getVisiblePicksCSV
 } = require('../utils/utils.js')
 
 const getPicksCSVHandler = pool => async (req, res) => {
@@ -33,9 +33,9 @@ const getPicksCSVHandler = pool => async (req, res) => {
     .send(csv)
 }
 
-const getPastPicksCSVhandler = pool => async (req, res) => {
+const getVisiblePicksCSVhandler = pool => async (req, res) => {
   const { authorization } = req.headers
-  const week = getWeek()
+  const week = await getWeek(pool)
   try {
     await checkAuthentication(pool, authorization, res)
   } catch (e) {
@@ -44,7 +44,7 @@ const getPastPicksCSVhandler = pool => async (req, res) => {
 
   let csv
   try {
-    csv = await getPastPicksCSV(pool)
+    csv = await getVisiblePicksCSV(pool)
   } catch (e) {
     console.error(e)
     respond(res, 500, { error: 'Error creating csv' })
@@ -62,4 +62,4 @@ const getPastPicksCSVhandler = pool => async (req, res) => {
     .send(csv)
 }
 
-module.exports = { getPastPicksCSVhandler, getPicksCSVHandler }
+module.exports = { getVisiblePicksCSVhandler, getPicksCSVHandler }

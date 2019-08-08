@@ -4,7 +4,7 @@ const Promise = require('promise')
 const WEEKS = require('../config/weeks.json') // new weeks start at 5am Tuesdays (UTC)
 
 const respond = (res, code, json) => {
-  console.log('Response:', json)
+  console.log(`Response [${code}]:`, json)
   res.status(code).json(json)
 }
 
@@ -13,16 +13,17 @@ const getRandomCode = () =>
     .toString(36)
     .substr(2, 14)
 
-const getWeek = () => {
-  const today = new Date('2019-09-17T01:00:00.000Z')
-  let week = 1
-  for (const d in WEEKS) {
-    const nextWeek = new Date(WEEKS[d])
-    if (today > nextWeek) ++week
-  }
-  console.log('Week:', week)
-  return week
-}
+const getWeek = pool =>
+  new Promise((resolve, reject) => {
+    pool.query(
+      'SELECT max(week) as week FROM VisibleWeeks WHERE visible = 1',
+      (err, rows, fields) => {
+        if (err) return reject(err || 'Error fetching week')
+        console.log('Week: ', rows[0].week + 1)
+        resolve((rows[0].week || 0) + 1)
+      }
+    )
+  })
 
 const getUserIdFromAuth = (pool, auth) =>
   new Promise((resolve, reject) => {
@@ -30,20 +31,21 @@ const getUserIdFromAuth = (pool, auth) =>
       'SELECT id FROM Users WHERE authorization = ?',
       [auth],
       (err, rows, fields) => {
-        if (err || rows.length < 1) reject(err)
+        if (err || rows.length < 1)
+          reject(err || 'No authorization token match')
         else resolve(rows[0].id)
       }
     )
   })
 
-const checkAuthentication = async (pool, auth, res) => {
+const checkAuthentication = async (pool, auth, res, skipResponse) => {
   try {
     const userId = await getUserIdFromAuth(pool, auth)
     console.log('User Id:', userId)
     return userId
   } catch (e) {
-    console.error(e)
-    respond(res, 401, { error: 'Wrong Authorization' })
+    console.error('Error with Authentication:', e)
+    if (!skipResponse) respond(res, 401, { error: 'Wrong Authentication' })
     throw e
   }
 }
@@ -56,10 +58,7 @@ const checkAdminAuthentication = async (pool, auth, res) =>
       (err, rows, fields) => {
         if (err || rows.length < 1) {
           reject(err)
-          res.status(401).json({
-            error: 'Wrong Admin Authorization'
-          })
-          throw err
+          respond(res, 401, { error: 'Wrong Admin Authentication' })
         } else {
           console.log('Admin User Id:', rows[0].id)
           resolve()
@@ -68,44 +67,59 @@ const checkAdminAuthentication = async (pool, auth, res) =>
     )
   })
 
-const getAllPicks = (pool, pastPicksOnly, userId) =>
-  new Promise((res, rej) => {
+const getAllPicks = (pool, visiblePicksOnly, userId) =>
+  new Promise(async (res, rej) => {
     console.log('Fetching All Picks...:')
-    const week = getWeek()
+    const week = await getWeek(pool)
 
-    // oncstruct where clause
-    let whereClause = `WHERE week <${pastPicksOnly ? '' : '='} ?`
-    whereClause += userId ? ' AND id = ?' : ''
+    // construct sql
+    let sql = `SELECT id, name, email, p.week, teamId FROM Picks p
+      ${visiblePicksOnly ? ' JOIN VisibleWeeks v ON(p.week = v.week) ' : ''}
+      JOIN Users u ON(u.id = p.userId) `
+    let whereClause = ''
+    const data = []
+    if (visiblePicksOnly) {
+      whereClause += 'WHERE v.visible = 1'
+    } else {
+      whereClause += 'WHERE p.week <= ?'
+      data.push(week)
+    }
 
-    // sql
-    let sql = `SELECT id, name, email, week, teamId FROM Picks p
-      JOIN Users u on(u.id = p.userId) ${whereClause}
-      ORDER BY id ASC, week ASC`
-    console.log(sql)
-    return pool.query(sql, [week, userId], (err, rows, fields) => {
-      if (err) rej(err)
-      console.log('Num picks queried:', rows.length)
-      res(
-        _.groupBy(
-          rows.map(r => ({
-            id: r.id,
-            name: r.name,
-            email: r.email,
-            week: r.week,
-            teamId: r.teamId
-          })),
-          'id'
+    if (userId) {
+      whereClause += ' AND u.id = ?'
+      data.push(userId)
+    }
+
+    const orderByClause = ' ORDER BY id ASC, p.week ASC'
+    console.log(sql + whereClause + orderByClause)
+    return pool.query(
+      sql + whereClause + orderByClause,
+      data,
+      (err, rows, fields) => {
+        if (err) rej(err)
+        console.log('Num picks queried:', rows.length)
+        res(
+          _.groupBy(
+            rows.map(r => ({
+              id: r.id,
+              name: r.name,
+              email: r.email,
+              week: r.week,
+              teamId: r.teamId
+            })),
+            'id'
+          )
         )
-      )
-    })
+      }
+    )
   })
 
 const getUserPicks = (pool, userId) => getAllPicks(pool, true, userId)
 
-const getAllPastPicks = pool => getAllPicks(pool, true)
+const getAllVisiblePicks = pool => getAllPicks(pool, true)
 
 const getPicksCSV = async (pool, isOnlyPastPicks) => {
-  const week = getWeek()
+  const week = await getWeek(pool)
 
   let csv = '"NAME"'
   for (let i = 1; i <= week; ++i) {
@@ -116,7 +130,7 @@ const getPicksCSV = async (pool, isOnlyPastPicks) => {
   let allPicks
   try {
     allPicks = Object.values(
-      isOnlyPastPicks ? await getAllPastPicks(pool) : await getAllPicks(pool)
+      isOnlyPastPicks ? await getAllVisiblePicks(pool) : await getAllPicks(pool)
     )
   } catch (e) {
     console.error(e)
@@ -162,6 +176,8 @@ module.exports = {
   getUserPicks,
   getRandomCode,
   userNameSorter,
+  getAllPicks,
+  getAllVisiblePicks,
   getAllPicksCSV: pool => getPicksCSV(pool, false),
-  getPastPicksCSV: pool => getPicksCSV(pool, true)
+  getVisiblePicksCSV: pool => getPicksCSV(pool, true)
 }

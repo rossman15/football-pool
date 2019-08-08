@@ -4,21 +4,19 @@ import PropTypes from 'prop-types'
 
 import MakePick from 'app/make-pick/make-pick'
 import YourPicks from 'app/your-picks/your-picks'
-import styles from  './pick-center.module.scss'
+import styles from './pick-center.module.scss'
 
 class PickCenter extends Component {
-
   static propTypes = {
     authorization: PropTypes.string.isRequired,
     user: PropTypes.object.isRequired,
     week: PropTypes.number.isRequired
   }
 
-  state = {
-  }
+  state = {}
 
   render() {
-    const { week, authorization } = this.props
+    const { week, user, authorization } = this.props
     return (
       <div className={styles.container}>
         <Row>
@@ -36,7 +34,7 @@ class PickCenter extends Component {
               </Row>
               <Row>
                 <Col span={20} offset={2}>
-                  <YourPicks authorization={authorization} />
+                  <YourPicks userId={user.id} authorization={authorization} />
                 </Col>
               </Row>
             </div>

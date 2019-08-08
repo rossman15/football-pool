@@ -5,22 +5,20 @@ const {
   checkAdminAuthentication,
   getAllPicks,
   getUserPicks,
-  getAllPastPicks
+  getAllVisiblePicks
 } = require('../utils/utils.js')
 
 const TEAMS = require('../config/teams.json')
 
-const getPicksHandler = pool => async (req, res) => {
+const getPickHandler = pool => async (req, res) => {
   const { authorization } = req.headers
   let userId
   try {
-    userId = await checkAuthentication(authorization, res)
+    userId = await checkAuthentication(pool, authorization, res)
   } catch (e) {
     return
   }
-
-  const week = getWeek()
-
+  const week = await getWeek(pool)
   pool.query(
     'SELECT * FROM Picks WHERE userId = ? AND week = ?',
     [userId, week],
@@ -35,19 +33,19 @@ const getPicksHandler = pool => async (req, res) => {
   )
 }
 
-const postPicksHandler = pool => async (req, res) => {
+const postPickHandler = pool => async (req, res) => {
   const { authorization } = req.headers
   const { teamId } = req.body
   let userId
   try {
-    userId = await checkAuthentication(authorization, res)
+    userId = await checkAuthentication(pool, authorization, res)
   } catch (e) {
     return
   }
 
   if (!teamId) return respond(res, 400, { error: 'teamId Required' })
   if (!TEAMS[teamId]) return respond(res, 400, { error: 'Invalid teamId' })
-  const week = getWeek()
+  const week = await getWeek(pool)
 
   // Check if user already picked this team
   pool.getConnection((err, connection) => {
@@ -92,7 +90,7 @@ const postPicksHandler = pool => async (req, res) => {
   })
 }
 
-const getAllPastPicksHandler = pool => async (req, res) => {
+const getAllVisiblePicksHandler = pool => async (req, res) => {
   const { authorization } = req.headers
   try {
     await checkAdminAuthentication(pool, authorization, res)
@@ -101,11 +99,11 @@ const getAllPastPicksHandler = pool => async (req, res) => {
   }
 
   try {
-    const pastPicks = await getAllPastPicks()
-    respond(res, 200, pastPicks)
+    const visiblePicks = await getAllVisiblePicks(pool)
+    respond(res, 200, visiblePicks)
   } catch (e) {
     console.error(e)
-    respond(res, 500, { error: 'Error fetching past picks' })
+    respond(res, 500, { error: 'Error fetching visible picks' })
   }
 }
 
@@ -117,11 +115,11 @@ const getAllPicksHandler = pool => async (req, res) => {
     return
   }
 
-  const picks = await getAllPicks()
+  const picks = await getAllPicks(pool)
   respond(res, 200, picks)
 }
 
-const getUsersPastPicksHandler = pool => async (req, res) => {
+const getUsersVisiblePicksHandler = pool => async (req, res) => {
   const { authorization } = req.headers
   let userId
   try {
@@ -139,9 +137,9 @@ const getUsersPastPicksHandler = pool => async (req, res) => {
 }
 
 module.exports = {
-  getPicksHandler,
-  postPicksHandler,
-  getAllPastPicksHandler,
+  getPickHandler,
+  postPickHandler,
+  getAllVisiblePicksHandler,
   getAllPicksHandler,
-  getUsersPastPicksHandler
+  getUsersVisiblePicksHandler
 }

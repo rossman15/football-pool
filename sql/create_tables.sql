@@ -29,3 +29,8 @@ CREATE TABLE footballpool.Games (
   UNIQUE KEY (homeTeamId, date),
   UNIQUE KEY (awayTeamId, date)
 );
+
+CREATE TABLE footballpool.VisibleWeeks (
+  week INTEGER NOT NULL PRIMARY KEY,
+  visible BOOLEAN NOT NULL DEFAULT 0
+);

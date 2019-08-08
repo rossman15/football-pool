@@ -5,14 +5,18 @@ const mysql = require('mysql')
 
 // Routes
 const {
-  getPicksHandler,
-  postPicksHandler,
+  getPickHandler,
+  postPickHandler,
   getAllPicksHandler,
-  getAllPastPicksHandler,
-  getUsersPastPicksHandler
+  getAllVisiblePicksHandler,
+  getUsersVisiblePicksHandler
 } = require('./routes/picks')
-const { getPicksCSVHandler, getPastPicksCSVhandler } = require('./routes/csv')
-const { getWeekHandler } = require('./routes/week')
+const {
+  getPicksCSVHandler,
+  getVisiblePicksCSVhandler
+} = require('./routes/csv')
+const { getWeekHandler, postVisibleWeekHandler } = require('./routes/week')
+const { getGamesHandler, postGamesHandler } = require('./routes/games')
 const { loginUserHandler, getUsersHandler } = require('./routes/users')
 
 var pool = mysql.createPool({
@@ -55,25 +59,32 @@ router.get('/users', getUsersHandler(pool))
 router.post('/:userId/login', loginUserHandler(pool))
 
 // get YOUR previous picks
-router.get('/pastPicks', getUsersPastPicksHandler(pool))
+router.get('/visiblePicks', getUsersVisiblePicksHandler(pool))
 
 // get everyone's picks
 router.get('/allPicks', getAllPicksHandler(pool))
 
-// get everyone's past picks
-router.get('/allPastPicks', getAllPastPicksHandler(pool))
+// get everyone's visible picks
+router.get('/allVisiblePicks', getAllVisiblePicksHandler(pool))
 
 // get this week's pick
 router
   .route('/pick')
-  .get(getPicksHandler(pool))
-  .post(postPicksHandler(pool))
+  .get(getPickHandler(pool))
+  .post(postPickHandler(pool))
 
 router.get('/picksCSV', getPicksCSVHandler(pool))
 
-router.get('/pastPicksCSV', getPastPicksCSVhandler(pool))
+router.get('/visiblePicksCSV', getVisiblePicksCSVhandler(pool))
 
-router.get('/week', getWeekHandler)
+router.get('/week', getWeekHandler(pool))
+router.post('/makeVisibleWeek', postVisibleWeekHandler(pool))
+
+// Get query params: week, teamId
+router
+  .route('/games')
+  .get(getGamesHandler(pool))
+  .post(postGamesHandler(pool))
 
 app.use('/api', router)
 app.listen(port)

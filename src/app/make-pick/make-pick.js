@@ -4,12 +4,11 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import teams from 'app/config/teams'
 
-import Spinner  from 'app/components/spinner/spinner'
+import Spinner from 'app/components/spinner/spinner'
 
-import styles from  './make-pick.module.scss'
+import styles from './make-pick.module.scss'
 
 class MakePick extends Component {
-
   static propTypes = {
     authorization: PropTypes.string.isRequired
   }
@@ -28,7 +27,7 @@ class MakePick extends Component {
     const { authorization } = this.props
     const res = await fetch('/api/pick', {
       method: 'GET',
-      headers: { 'Accept': 'application/json', 'Authorization': authorization },
+      headers: { Accept: 'application/json', Authorization: authorization }
     })
     const pick = await res.json()
     if (!pick.teamId) this.setState({ loading: false })
@@ -41,20 +40,22 @@ class MakePick extends Component {
 
   savePick = async e => {
     e.preventDefault()
-    const { teamId, unsavedPick } = this.state
-    console.log(teamId, unsavedPick);
+    const { unsavedPick } = this.state
 
     const { authorization } = this.props
     const res = await fetch('/api/pick', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': authorization },
+        Authorization: authorization
+      },
       body: JSON.stringify({ teamId: unsavedPick })
     })
     const pick = await res.json()
-    if (res.status !== 200) return message.error(pick.error || 'Error', 4, _.noop)
+    if (res.status !== 200)
+      return message.error(pick.error || 'Error', 4, _.noop)
+    message.success('Success!', 2, _.noop)
     this.setState({ teamId: pick.teamId, unsavedPick: pick.teamId })
   }
 
@@ -67,22 +68,21 @@ class MakePick extends Component {
         <form onSubmit={this.savePick}>
           <div className={styles.pick}>
             <h3>Your Pick</h3>
-              {loading
-                ? <Spinner />
-                : teamId
-                  ? (
-                    <div className={styles.pickLogoContainer}>
-                      {teams.images[teamId] && (
-                        <div
-                          className={styles.pickLogo}
-                          style={{backgroundImage: `url(${teams.images[teamId]})`}}
-                        />
-                      )}
-                      {teams.map[teamId]}
-                    </div>
-                  )
-                  : 'You have not picked yet'
-              }
+            {loading ? (
+              <Spinner />
+            ) : teamId ? (
+              <div className={styles.pickLogoContainer}>
+                {teams.images[teamId] && (
+                  <div
+                    className={styles.pickLogo}
+                    style={{ backgroundImage: `url(${teams.images[teamId]})` }}
+                  />
+                )}
+                {teams.map[teamId]}
+              </div>
+            ) : (
+              'You have not picked yet'
+            )}
           </div>
           <Select
             showSearch
@@ -97,7 +97,9 @@ class MakePick extends Component {
               </Select.Option>
             ))}
           </Select>
-          <Button htmlType="submit">{`${teamId ? 'Change' : 'Make'} Pick`}</Button>
+          <Button htmlType="submit">{`${
+            teamId ? 'Change' : 'Make'
+          } Pick`}</Button>
         </form>
       </div>
     )
