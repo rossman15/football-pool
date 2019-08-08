@@ -10,10 +10,22 @@ CREATE TABLE footballpool.Users (
 CREATE TABLE footballpool.Picks (
   userId INTEGER NOT NULL,
   week INTEGER NOT NULL,
-  teamId CHAR(3) NOT NULL,
+  teamId VARCHAR(3) NOT NULL,
 
   PRIMARY KEY (userId, week),
   UNIQUE KEY (userId, teamId),
   FOREIGN KEY (userId)
       REFERENCES footballpool.Users(id)
+);
+
+CREATE TABLE footballpool.Games (
+  homeTeamId CHAR(3) NOT NULL,
+  awayTeamId CHAR(3) NOT NULL,
+  week INTEGER NOT NULL,
+  date DATETIME NOT NULL,
+  winner VARCHAR(3) DEFAULT NULL,
+
+  PRIMARY KEY (homeTeamId, awayTeamId, week, date),
+  UNIQUE KEY (homeTeamId, date),
+  UNIQUE KEY (awayTeamId, date)
 );
