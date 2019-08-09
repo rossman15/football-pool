@@ -118,6 +118,19 @@ const getUserPicks = (pool, userId) => getAllPicks(pool, true, userId)
 
 const getAllVisiblePicks = pool => getAllPicks(pool, true)
 
+const picksSorter = (a, b) => {
+  if (a.length > b.length) return -1
+  if (a.length < b.length) return 1
+  if (!a.length) return 0
+  const lastPick_a = a[a.length - 1]
+  const lastPick_b = b[b.length - 1]
+  if (lastPick_a.teamId < lastPick_b.teamId) return -1
+  if (lastPick_a.teamId > lastPick_b.teamId) return 1
+  if (lastPick_a.name < lastPick_b.name) return -1
+  if (lastPick_a.name > lastPick_b.name) return 1
+  return 0
+}
+
 const getPicksCSV = async (pool, isOnlyPastPicks) => {
   const week = await getWeek(pool)
 
@@ -139,18 +152,7 @@ const getPicksCSV = async (pool, isOnlyPastPicks) => {
   }
 
   // allPicks is an array of arrays (of picks, one for each user)
-  const sortedUsers = allPicks.sort((a, b) => {
-    if (a.length > b.length) return -1
-    if (a.length < b.length) return 1
-    if (!a.length) return 0
-    const lastPick_a = a[a.length - 1]
-    const lastPick_b = b[b.length - 1]
-    if (lastPick_a.teamId < lastPick_b.teamId) return -1
-    if (lastPick_a.teamId > lastPick_b.teamId) return 1
-    if (lastPick_a.name < lastPick_b.name) return -1
-    if (lastPick_a.name > lastPick_b.name) return 1
-    return 0
-  })
+  const sortedUsers = allPicks.sort(picksSorter)
 
   sortedUsers.forEach(userPicks => {
     csv += `"${userPicks[0].name}"`
