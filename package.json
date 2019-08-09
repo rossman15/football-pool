@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "author": "Timothy McKay",
   "license": "ISC",
-  "description": "The Frontend take home project for DoorDash",
+  "description": "Football Elimination Pool",
   "proxy": "http://localhost:8080/",
   "scripts": {
     "start": "node scripts/start.js",
